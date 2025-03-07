@@ -20,11 +20,7 @@ const queryClient = new QueryClient();
 
 function App() {
   const aarcModalRef = useRef(
-    new AarcFundKitModal(
-      aarcConfig,
-      import.meta.env.VITE_RUN_MODE === "development" ? "dev" : "prod",
-      "https://deploy-preview-151--iframe-widget-v3.netlify.app",
-    )
+    new AarcFundKitModal(aarcConfig)
   );
 
   const aarcModal = aarcModalRef.current;

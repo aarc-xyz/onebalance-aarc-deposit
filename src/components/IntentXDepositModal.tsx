@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { ethers } from 'ethers';
 import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
-import { INTENTX_CONTRACT_ADDRESS } from '../constants';
+import { DIAMOND_ADDRESS, MULTIACCOUNT_ADDRESS, SupportedChainId } from '../constants';
 
 
 // SVG for USDC icon
@@ -24,27 +24,23 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
         try {
             setIsProcessing(true);
 
-            // Generate calldata for depositFor function
-            const generateDepositForCallData = (userAddress: string): string => {
-                const accountFacetInterface = new ethers.Interface([
-                    "function depositFor(address user, uint256 amount) external",
-                ]);
+            // Generate calldata for depositFor function on Diamond contract
+            const diamondInterface = new ethers.Interface([
+                "function depositFor(address user, uint256 amount) external",
+            ]);
 
-                const amountInWei = ethers.parseUnits(amount, 6); // USDC has 6 decimals
+            const amountInWei = ethers.parseUnits(amount, 6); // USDC has 6 decimals
 
-                return accountFacetInterface.encodeFunctionData("depositFor", [
-                    userAddress,
-                    amountInWei,
-                ]);
-            };
-
-            const contractPayload = generateDepositForCallData(address);
+            const contractPayload = diamondInterface.encodeFunctionData("depositFor", [
+                address, // Use the user's address directly instead of subaccount
+                amountInWei,
+            ]);
 
             aarcModal.updateRequestedAmount(Number(amount));
 
             // Update Aarc's destination contract configuration
             aarcModal.updateDestinationContract({
-                contractAddress: INTENTX_CONTRACT_ADDRESS,
+                contractAddress: DIAMOND_ADDRESS[SupportedChainId.BASE],
                 contractName: "IntentX Deposit",
                 contractGasLimit: "800000",
                 contractPayload: contractPayload,
