@@ -8,4 +8,10 @@ export default defineConfig({
     tailwindcss(),
     react()
   ],
+  preview: {
+    allowedHosts: [
+      'aarc-intentx-deposit.onrender.com',
+      '.onrender.com' // This will allow all subdomains on render.com
+    ]
+  }
 })
