@@ -14,8 +14,6 @@ declare global {
   }
 }
 
-window.__VUE__ = true;
-
 const queryClient = new QueryClient();
 
 function App() {
