@@ -76,7 +76,9 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
                 args: [newAccountName],
             });
 
+            
             setNewAccountName('');
+            fetchSubAccounts();
         } catch (error) {
             console.error("Error creating account:", error);
         } finally {
