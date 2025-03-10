@@ -4,6 +4,7 @@ import { ethers } from 'ethers';
 import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
 import { BASE_RPC_URL, DIAMOND_ADDRESS, MULTIACCOUNT_ADDRESS, multiAccountAbi, SupportedChainId } from '../constants';
 import { UsdcIcon } from '../icons/UsdIcon';
+import {  BASE_CHAIN_ID } from '../chain';
 
 interface SubAccount {
     accountAddress: string;
@@ -16,11 +17,18 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
     const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
     const [selectedAccount, setSelectedAccount] = useState<string>('');
     const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+    const [isWrongNetwork, setIsWrongNetwork] = useState(false);
     const [newAccountName, setNewAccountName] = useState('');
-    const { address } = useAccount();
+    const { address, chain } = useAccount();
 
     // Create provider instance
     const provider = new ethers.JsonRpcProvider(BASE_RPC_URL);
+
+    useEffect(() => {
+        if (chain) {
+            setIsWrongNetwork(chain.id !== BASE_CHAIN_ID);
+        }
+    }, [chain]);
 
     useEffect(() => {
         if (address) {
@@ -115,7 +123,6 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
         }
     };
 
-
     return (
             <div className="bg-gray-900 rounded-xl shadow-lg w-full max-w-md text-white">
                 <div className="p-4 space-y-4">
@@ -143,7 +150,7 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
                         {/* Create New Account Section */}
                         { 
                         subAccounts.length <= 0 && <div className="mt-4 space-y-2">
-                            <div className="flex space-x-2">
+                            <div className="flex flex-col gap-y-2 space-x-2">
                                 <input
                                     className="flex-1 p-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
                                     type="text"
@@ -158,11 +165,11 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
                                             ? 'bg-blue-600 hover:bg-blue-700 text-white'
                                             : 'bg-gray-700 cursor-not-allowed text-gray-300'
                                     }`}
-                                    disabled={isCreatingAccount || !newAccountName}
+                                    disabled={isCreatingAccount || !newAccountName || isWrongNetwork}
                                     onClick={handleCreateAccount}
                                     style={{ backgroundColor: !isCreatingAccount && newAccountName ? '#2563eb' : '#374151' }}
                                 >
-                                    {isCreatingAccount ? 'Creating...' : 'Create'}
+                                    {isCreatingAccount ? 'Creating...' : isWrongNetwork ? 'Please switch to Base network' : 'Create'}
                                 </button>
                             </div>
                         </div>
