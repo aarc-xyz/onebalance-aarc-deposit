@@ -68,3 +68,17 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Make iframes transparent */
+iframe {
+  background-color: transparent !important;
+  background: transparent !important;
+  border: 0;
+  color-scheme: normal;
+}
+
+/* Make the background color of the page transparent */
+body {
+  background-color: transparent !important;
+  background: transparent !important;
+}
