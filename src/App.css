@@ -40,3 +40,16 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Make iframes transparent */
+iframe {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+#iframe {
+  background-color: transparent !important;
+  background: transparent !important;
+  border: 0;
+  color-scheme: normal;
+}
