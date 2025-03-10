@@ -9,7 +9,6 @@ interface DepositButtonProps {
 
 export const DepositButton = ({ aarcModal }: DepositButtonProps) => {
   const { address } = useAccount();
-  console.log(address);
 
   return (
     <div className="space-y-4">

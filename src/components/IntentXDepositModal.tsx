@@ -1,25 +1,83 @@
-import { useState } from 'react';
-import { useAccount } from 'wagmi';
+import { useState, useEffect } from 'react';
+import { useAccount, useWriteContract } from 'wagmi';
 import { ethers } from 'ethers';
 import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
-import { DIAMOND_ADDRESS, MULTIACCOUNT_ADDRESS, SupportedChainId } from '../constants';
+import { BASE_RPC_URL, DIAMOND_ADDRESS, MULTIACCOUNT_ADDRESS, multiAccountAbi, SupportedChainId } from '../constants';
+import { UsdcIcon } from '../icons/UsdIcon';
 
-
-// SVG for USDC icon
-const UsdcIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="12" fill="#2775CA" />
-        <path d="M12 17.5c-3.038 0-5.5-2.462-5.5-5.5S8.962 6.5 12 6.5s5.5 2.462 5.5 5.5-2.462 5.5-5.5 5.5zm0-9.625c-2.28 0-4.125 1.845-4.125 4.125S9.72 16.125 12 16.125s4.125-1.845 4.125-4.125S14.28 7.875 12 7.875z" fill="white" />
-        <path d="M13.375 14.438h-2.75v-1.376h2.75v1.376zm0-3.438h-2.75V9.625h2.75V11z" fill="white" />
-    </svg>
-);
+interface SubAccount {
+    accountAddress: string;
+    name: string;
+}
 
 const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
     const [amount, setAmount] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
+    const [selectedAccount, setSelectedAccount] = useState<string>('');
+    const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+    const [newAccountName, setNewAccountName] = useState('');
     const { address } = useAccount();
-    const handleDeposit = async () => {
+
+    // Create provider instance
+    const provider = new ethers.JsonRpcProvider(BASE_RPC_URL);
+
+    useEffect(() => {
+        if (address) {
+            fetchSubAccounts();
+        }
+    }, [address]);
+
+    const fetchSubAccounts = async () => {
         if (!address) return;
+
+        try {
+            const multiAccountContract = new ethers.Contract(
+                MULTIACCOUNT_ADDRESS[SupportedChainId.BASE],
+                multiAccountAbi,
+                provider
+            );
+
+            const accountsLength = await multiAccountContract.getAccountsLength(address);
+
+            if (Number(accountsLength) > 0) {
+                // Get all accounts
+                const accounts = await multiAccountContract.getAccounts(address, 0, accountsLength);
+                setSubAccounts(accounts);
+                if (accounts.length > 0) {
+                    setSelectedAccount(accounts[0].accountAddress);
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching sub accounts:", error);
+        }
+    };
+
+    const { writeContract: addAccount } = useWriteContract();
+
+    const handleCreateAccount = async () => {
+        if (!address || !newAccountName || isCreatingAccount) return;
+
+        try {
+            setIsCreatingAccount(true);
+            
+            addAccount({
+                address: MULTIACCOUNT_ADDRESS[SupportedChainId.BASE] as `0x${string}`,
+                abi: multiAccountAbi,
+                functionName: 'addAccount',
+                args: [newAccountName],
+            });
+
+            setNewAccountName('');
+        } catch (error) {
+            console.error("Error creating account:", error);
+        } finally {
+            setIsCreatingAccount(false);
+        }
+    };
+
+    const handleDeposit = async () => {
+        if (!address || !selectedAccount) return;
 
         try {
             setIsProcessing(true);
@@ -32,7 +90,7 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
             const amountInWei = ethers.parseUnits(amount, 6); // USDC has 6 decimals
 
             const contractPayload = diamondInterface.encodeFunctionData("depositFor", [
-                address, // Use the user's address directly instead of subaccount
+                selectedAccount, // Use the selected subaccount address
                 amountInWei,
             ]);
 
@@ -49,7 +107,8 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
 
             // Open the Aarc modal
             aarcModal.openModal();
-
+            setAmount('');
+            setIsProcessing(false);
         } catch (error) {
             console.error("Error preparing deposit:", error);
             setIsProcessing(false);
@@ -62,16 +121,55 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
                 <div className="p-4 space-y-4">
                     <div className="space-y-2">
                         <div className="text-sm text-gray-400">Account to Deposit in</div>
-                            <div className="flex items-center space-x-2">
-                                <div className="bg-gray-600 w-5 h-5 rounded-full"></div>
-                                <div>
-                                    <div>{address}</div>
-                                </div>
+                        {subAccounts.length > 0 ? (
+                            <div className="space-y-2">
+                                <select
+                                    className="w-full p-3 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                                    value={selectedAccount}
+                                    onChange={(e) => setSelectedAccount(e.target.value)}
+                                    style={{ backgroundColor: '#1f2937' }}
+                                >
+                                    {subAccounts.map((account) => (
+                                        <option key={account.accountAddress} value={account.accountAddress}>
+                                            {account.name} ({account.accountAddress})
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
+                        ) : (
+                            <div className="text-sm text-gray-400">No sub accounts found. Create one below.</div>
+                        )}
+
+                        {/* Create New Account Section */}
+                        { 
+                        subAccounts.length <= 0 && <div className="mt-4 space-y-2">
+                            <div className="flex space-x-2">
+                                <input
+                                    className="flex-1 p-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                                    type="text"
+                                    placeholder="Enter new account name"
+                                    value={newAccountName}
+                                    onChange={(e) => setNewAccountName(e.target.value)}
+                                    style={{ backgroundColor: '#1f2937' }}
+                                />
+                                <button
+                                    className={`p-2 rounded-md font-medium ${
+                                        !isCreatingAccount && newAccountName
+                                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                            : 'bg-gray-700 cursor-not-allowed text-gray-300'
+                                    }`}
+                                    disabled={isCreatingAccount || !newAccountName}
+                                    onClick={handleCreateAccount}
+                                    style={{ backgroundColor: !isCreatingAccount && newAccountName ? '#2563eb' : '#374151' }}
+                                >
+                                    {isCreatingAccount ? 'Creating...' : 'Create'}
+                                </button>
+                            </div>
+                        </div>
+                        }
                     </div>
 
                     <div className="space-y-2">
-
                         <div className="relative flex items-center">
                             <div className="absolute left-3">
                                 <UsdcIcon />
@@ -107,19 +205,19 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
                             <strong>Important!</strong> To withdraw your deposited funds, please wait 720 minutes (12 hours) from the time of deposit.
                         </span>
                     </div>
-
                 </div>
 
                 {/* Modal Footer */}
                 <div className="p-4 border-t border-gray-800">
                     <button
-                        className={`w-full p-3 rounded-md font-medium ${!isProcessing
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'bg-gray-700 cursor-not-allowed text-gray-300'
-                            }`}
-                        disabled={isProcessing}
+                        className={`w-full p-3 rounded-md font-medium ${
+                            !isProcessing && selectedAccount
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                : 'bg-gray-700 cursor-not-allowed text-gray-300'
+                        }`}
+                        disabled={isProcessing || !selectedAccount || !amount}
                         onClick={handleDeposit}
-                        style={{ backgroundColor: !isProcessing ? '#2563eb' : '#374151' }}
+                        style={{ backgroundColor: !isProcessing && selectedAccount && amount ? '#2563eb' : '#374151' }}
                     >
                         {isProcessing ? 'Processing...' : 'Continue'}
                     </button>
