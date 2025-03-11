@@ -150,32 +150,36 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
                         )}
 
                         {/* Create New Account Section */}
-                        { 
-                        subAccounts.length <= 0 && <div className="mt-4 space-y-2">
-                            <div className="flex flex-col gap-y-2 space-x-2">
-                                <input
-                                    className="flex-1 p-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-                                    type="text"
-                                    placeholder="Enter new account name"
-                                    value={newAccountName}
-                                    onChange={(e) => setNewAccountName(e.target.value)}
-                                    style={{ backgroundColor: '#1f2937' }}
-                                />
-                                <button
-                                    className={`p-2 rounded-md font-medium ${
-                                        !isCreatingAccount && newAccountName
-                                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                            : 'bg-gray-700 cursor-not-allowed text-gray-300'
-                                    }`}
-                                    disabled={isCreatingAccount || !newAccountName || isWrongNetwork}
-                                    onClick={handleCreateAccount}
-                                    style={{ backgroundColor: !isCreatingAccount && newAccountName ? '#2563eb' : '#374151' }}
-                                >
-                                    {isCreatingAccount ? 'Creating...' : isWrongNetwork ? 'Please switch to Base network' : 'Create'}
-                                </button>
+                        {subAccounts.length <= 0 && (
+                            <div className="mt-4 space-y-2">
+                                    {isWrongNetwork ? (
+                                        <span className='bg-red-900/50 rounded-md p-3 text-red-200'>Please switch to Base network</span>
+                                    ) : (
+                                <div className="flex flex-col gap-y-2 space-x-2">
+                                    <input
+                                        className="flex-1 p-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                                        type="text"
+                                        placeholder="Enter new account name"
+                                        value={newAccountName}
+                                        onChange={(e) => setNewAccountName(e.target.value)}
+                                        style={{ backgroundColor: '#1f2937' }}
+                                    />
+                                        <button
+                                            className={`p-2 rounded-md font-medium ${
+                                                !isCreatingAccount && newAccountName && !isWrongNetwork
+                                                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                                    : 'bg-gray-700 cursor-not-allowed text-gray-300'
+                                            }`}
+                                            disabled={isCreatingAccount || !newAccountName || isWrongNetwork}
+                                            onClick={handleCreateAccount}
+                                            style={{ backgroundColor: !isCreatingAccount && newAccountName && !isWrongNetwork ? '#2563eb' : '#374151' }}
+                                        >
+                                            {isCreatingAccount ? 'Creating...' : 'Create'}
+                                        </button>
+                                </div>
+                                    )}
                             </div>
-                        </div>
-                        }
+                        )}
                     </div>
 
                     <div className="space-y-2">
