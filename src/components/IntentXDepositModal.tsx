@@ -5,6 +5,7 @@ import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
 import { BASE_RPC_URL, DIAMOND_ADDRESS, MULTIACCOUNT_ADDRESS, multiAccountAbi, SupportedChainId } from '../constants';
 import { BASE_CHAIN_ID } from '../chain';
 import { Navbar } from './Navbar';
+import StyledConnectButton from './StyledConnectButton';
 
 interface SubAccount {
     accountAddress: string;
@@ -169,7 +170,7 @@ export const IntentXDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal
                                 onClick={() => !shouldDisableInteraction && setIsDropdownOpen(!isDropdownOpen)}
                                 disabled={shouldDisableInteraction}
                                 className="flex items-center justify-between w-full p-3 bg-[#2A2A2A] border border-[#424242] rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
+                            >
                                 <span className="text-base text-[#F6F6F6] font-normal">
                                     {selectedAccount?.accountAddress ?
                                         `${selectedAccount.name} (${selectedAccount.accountAddress.slice(0, 6)}...${selectedAccount.accountAddress.slice(-4)})` :
@@ -187,31 +188,34 @@ export const IntentXDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal
                                     <path d="M4 6L8 10L12 6" stroke="#F6F6F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </button>
+                        ) : !address ? (
+                            <StyledConnectButton />
                         ) : (
                             <button
                                 onClick={() => !isWrongNetwork && setIsCreatingNewAccount(true)}
                                 disabled={isWrongNetwork}
-                                className="flex items-center justify-center w-full p-3 bg-[#A5E547] text-[#003300] font-semibold rounded-2xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="flex items-center justify-center w-full p-3 bg-[#A5E547] text-[#003300] font-semibold rounded-2xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed gap-2"
                             >
-                                Create Your First Sub Account
+                                        Create Your First Sub Account
                             </button>
                         )}
+
 
                         {/* Dropdown Menu */}
                         {isDropdownOpen && subAccounts.length > 0 && (
                             <div className="absolute w-full mt-2 bg-[#2A2A2A] border border-[#424242] rounded-2xl overflow-hidden z-50">
-                                    {subAccounts.map((account) => (
-                                        <button
-                                            key={account.accountAddress}
-                                            onClick={() => {
-                                                setSelectedAccount(account);
-                                                setIsDropdownOpen(false);
-                                            }}
-                                            className="w-full p-3 text-left text-[#F6F6F6] hover:bg-[#424242] transition-colors"
-                                        >
-                                            {account.name} ({account.accountAddress.slice(0, 6)}...{account.accountAddress.slice(-4)})
-                                        </button>
-                                    ))}
+                                {subAccounts.map((account) => (
+                                    <button
+                                        key={account.accountAddress}
+                                        onClick={() => {
+                                            setSelectedAccount(account);
+                                            setIsDropdownOpen(false);
+                                        }}
+                                        className="w-full p-3 text-left text-[#F6F6F6] hover:bg-[#424242] transition-colors"
+                                    >
+                                        {account.name} ({account.accountAddress.slice(0, 6)}...{account.accountAddress.slice(-4)})
+                                    </button>
+                                ))}
                                 <button
                                     onClick={() => {
                                         setIsCreatingNewAccount(true);
@@ -231,13 +235,13 @@ export const IntentXDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal
                             <div className="flex flex-col gap-2">
                                 <input
                                     type="text"
-                                        value={newAccountName}
-                                        onChange={(e) => setNewAccountName(e.target.value)}
+                                    value={newAccountName}
+                                    onChange={(e) => setNewAccountName(e.target.value)}
                                     placeholder="Enter account name"
                                     className="w-full p-2 bg-transparent border border-[#424242] rounded-lg text-[#F6F6F6] placeholder-[#6B7280] focus:outline-none focus:border-[#A5E547]"
-                                    />
+                                />
                                 <div className="flex gap-2">
-                                        <button
+                                    <button
                                         onClick={() => setIsCreatingNewAccount(false)}
                                         className="flex-1 p-2 text-[#F6F6F6] hover:bg-[#424242] rounded-lg transition-colors"
                                     >
@@ -247,12 +251,12 @@ export const IntentXDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal
                                         onClick={handleCreateSubAccount}
                                         disabled={!newAccountName || isCreatingAccount}
                                         className="flex-1 p-2 bg-[#A5E547] text-[#003300] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {isCreatingAccount ? 'Creating...' : 'Create'}
+                                    >
+                                        {isCreatingAccount ? 'Creating...' : 'Create'}
                                     </button>
                                 </div>
                             </div>
-                            </div>
+                        </div>
                     )}
 
                     {/* Amount Input */}
@@ -272,7 +276,7 @@ export const IntentXDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal
                                 />
                             </div>
                         </div>
-                        </div>
+                    </div>
 
                     {/* Quick Amount Buttons */}
                     <div className="flex gap-[14px] w-full">
