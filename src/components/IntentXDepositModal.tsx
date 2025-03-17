@@ -3,22 +3,25 @@ import { useAccount, useWriteContract } from 'wagmi';
 import { ethers } from 'ethers';
 import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
 import { BASE_RPC_URL, DIAMOND_ADDRESS, MULTIACCOUNT_ADDRESS, multiAccountAbi, SupportedChainId } from '../constants';
-import { UsdcIcon } from '../icons/UsdIcon';
-import {  BASE_CHAIN_ID } from '../chain';
+import { BASE_CHAIN_ID } from '../chain';
+import { Navbar } from './Navbar';
 
 interface SubAccount {
     accountAddress: string;
     name: string;
 }
 
-const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
-    const [amount, setAmount] = useState('');
+export const IntentXDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
+    const [amount, setAmount] = useState('20');
     const [isProcessing, setIsProcessing] = useState(false);
     const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
-    const [selectedAccount, setSelectedAccount] = useState<string>('');
+    const [selectedAccount, setSelectedAccount] = useState<SubAccount | null>(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isCreatingAccount, setIsCreatingAccount] = useState(false);
     const [isWrongNetwork, setIsWrongNetwork] = useState(false);
     const [newAccountName, setNewAccountName] = useState('');
+    const [isCreatingNewAccount, setIsCreatingNewAccount] = useState(false);
+
     const { address, chain } = useAccount();
 
     // Create provider instance
@@ -52,33 +55,47 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
                 // Get all accounts
                 const accounts = await multiAccountContract.getAccounts(address, 0, accountsLength);
                 setSubAccounts(accounts);
-                if (accounts.length > 0) {
-                    setSelectedAccount(accounts[0].accountAddress);
+                if (accounts.length > 0 && !selectedAccount) {
+                    setSelectedAccount(accounts[0]);
                 }
+                return accounts;
             }
+            return [];
         } catch (error) {
             console.error("Error fetching sub accounts:", error);
+            return [];
         }
     };
 
     const { writeContract: addAccount } = useWriteContract();
 
-    const handleCreateAccount = async () => {
+    const handleCreateSubAccount = async () => {
         if (!address || !newAccountName || isCreatingAccount) return;
 
         try {
             setIsCreatingAccount(true);
-            
-            addAccount({
+            await addAccount({
                 address: MULTIACCOUNT_ADDRESS[SupportedChainId.BASE] as `0x${string}`,
                 abi: multiAccountAbi,
                 functionName: 'addAccount',
                 args: [newAccountName],
             });
 
-            
+            // Add a small delay to ensure the transaction is processed
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            // Fetch updated accounts
+            const updatedAccounts = await fetchSubAccounts();
+
+            // Reset states
             setNewAccountName('');
-            fetchSubAccounts();
+            setIsCreatingNewAccount(false);
+
+            // Select the newly created account (last in the list)
+            if (updatedAccounts && updatedAccounts.length > 0) {
+                const newAccount = updatedAccounts[updatedAccounts.length - 1];
+                setSelectedAccount(newAccount);
+            }
         } catch (error) {
             console.error("Error creating account:", error);
         } finally {
@@ -100,7 +117,7 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
             const amountInWei = ethers.parseUnits(amount, 6); // USDC has 6 decimals
 
             const contractPayload = diamondInterface.encodeFunctionData("depositFor", [
-                selectedAccount, // Use the selected subaccount address
+                selectedAccount.accountAddress, // Use the selected subaccount address
                 amountInWei,
             ]);
 
@@ -112,7 +129,7 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
                 contractName: "IntentX Deposit",
                 contractGasLimit: "800000",
                 contractPayload: contractPayload,
-                contractLogoURI: "data:image/png;base64,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"
+                contractLogoURI: "https://img.cryptorank.io/coins/intent_x1700642634517.png"
             });
 
             // Open the Aarc modal
@@ -122,121 +139,186 @@ const DepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
         } catch (error) {
             console.error("Error preparing deposit:", error);
             setIsProcessing(false);
+            aarcModal.close();
         }
     };
 
+    const shouldDisableInteraction = isWrongNetwork || (!subAccounts.length && !isCreatingNewAccount);
+
     return (
-            <div className="bg-gray-900 rounded-xl shadow-lg w-full max-w-md text-white">
-                <div className="p-4 space-y-4">
-                    <div className="space-y-2">
-                        <div className="text-sm text-gray-400">Account to Deposit in</div>
-                        {subAccounts.length > 0 ? (
-                            <div className="space-y-2">
-                                <select
-                                    className="w-full p-3 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-                                    value={selectedAccount}
-                                    onChange={(e) => setSelectedAccount(e.target.value)}
-                                    style={{ backgroundColor: '#1f2937' }}
-                                >
-                                    {subAccounts.map((account) => (
-                                        <option key={account.accountAddress} value={account.accountAddress}>
-                                            {account.name} ({account.accountAddress})
-                                        </option>
-                                    ))}
-                                </select>
+        <div className="min-h-screen bg-aarc-bg grid-background">
+            <Navbar />
+            <main className="mt-24 gradient-border flex items-center justify-center mx-auto max-w-md shadow-[4px_8px_8px_4px_rgba(0,0,0,0.1)]">
+                <div className="flex flex-col items-center w-[440px] bg-[#2D2D2D] rounded-[24px]  p-8 pb-[22px] gap-3">
+                    {isWrongNetwork && (
+                        <div className="w-full p-4 bg-[rgba(255,77,77,0.05)] border border-[rgba(255,77,77,0.2)] rounded-2xl mb-4">
+                            <div className="flex items-start gap-2">
+                                <img src="/warning-icon.svg" alt="Warning" className="w-4 h-4 mt-[2px]" />
+                                <p className="text-xs font-bold text-[#FF4D4D] leading-5">
+                                    Please switch to Base network to continue
+                                </p>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Account Selection or Create First Account */}
+                    <div className="w-full relative">
+                        <h3 className="text-[14px] font-semibold text-[#F6F6F6] mb-4">Account to Deposit in</h3>
+                        {subAccounts.length > 0 ? (
+                            <button
+                                onClick={() => !shouldDisableInteraction && setIsDropdownOpen(!isDropdownOpen)}
+                                disabled={shouldDisableInteraction}
+                                className="flex items-center justify-between w-full p-3 bg-[#2A2A2A] border border-[#424242] rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                <span className="text-base text-[#F6F6F6] font-normal">
+                                    {selectedAccount?.accountAddress ?
+                                        `${selectedAccount.name} (${selectedAccount.accountAddress.slice(0, 6)}...${selectedAccount.accountAddress.slice(-4)})` :
+                                        'Select Account'
+                                    }
+                                </span>
+                                <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 16 16"
+                                    fill="none"
+                                    className={`transform transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path d="M4 6L8 10L12 6" stroke="#F6F6F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </button>
                         ) : (
-                            <div className="text-sm text-gray-400">No sub accounts found. Create one below.</div>
+                            <button
+                                onClick={() => !isWrongNetwork && setIsCreatingNewAccount(true)}
+                                disabled={isWrongNetwork}
+                                className="flex items-center justify-center w-full p-3 bg-[#A5E547] text-[#003300] font-semibold rounded-2xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Create Your First Sub Account
+                            </button>
                         )}
 
-                        {/* Create New Account Section */}
-                        {subAccounts.length <= 0 && (
-                            <div className="mt-4 space-y-2">
-                                    {isWrongNetwork ? (
-                                        <span className='bg-red-900/50 rounded-md p-3 text-red-200'>Please switch to Base network</span>
-                                    ) : (
-                                <div className="flex flex-col gap-y-2 space-x-2">
-                                    <input
-                                        className="flex-1 p-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-                                        type="text"
-                                        placeholder="Enter new account name"
+                        {/* Dropdown Menu */}
+                        {isDropdownOpen && subAccounts.length > 0 && (
+                            <div className="absolute w-full mt-2 bg-[#2A2A2A] border border-[#424242] rounded-2xl overflow-hidden z-50">
+                                    {subAccounts.map((account) => (
+                                        <button
+                                            key={account.accountAddress}
+                                            onClick={() => {
+                                                setSelectedAccount(account);
+                                                setIsDropdownOpen(false);
+                                            }}
+                                            className="w-full p-3 text-left text-[#F6F6F6] hover:bg-[#424242] transition-colors"
+                                        >
+                                            {account.name} ({account.accountAddress.slice(0, 6)}...{account.accountAddress.slice(-4)})
+                                        </button>
+                                    ))}
+                                <button
+                                    onClick={() => {
+                                        setIsCreatingNewAccount(true);
+                                        setIsDropdownOpen(false);
+                                    }}
+                                    className="w-full p-3 text-left text-[#A5E547] hover:bg-[#424242] transition-colors border-t border-[#424242]"
+                                >
+                                    + Create New Account
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Create New Account Form */}
+                    {isCreatingNewAccount && (
+                        <div className="w-full p-4 bg-[#2A2A2A] border border-[#424242] rounded-2xl">
+                            <div className="flex flex-col gap-2">
+                                <input
+                                    type="text"
                                         value={newAccountName}
                                         onChange={(e) => setNewAccountName(e.target.value)}
-                                        style={{ backgroundColor: '#1f2937' }}
+                                    placeholder="Enter account name"
+                                    className="w-full p-2 bg-transparent border border-[#424242] rounded-lg text-[#F6F6F6] placeholder-[#6B7280] focus:outline-none focus:border-[#A5E547]"
                                     />
+                                <div className="flex gap-2">
                                         <button
-                                            className={`p-2 rounded-md font-medium ${
-                                                !isCreatingAccount && newAccountName && !isWrongNetwork
-                                                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                                    : 'bg-gray-700 cursor-not-allowed text-gray-300'
-                                            }`}
-                                            disabled={isCreatingAccount || !newAccountName || isWrongNetwork}
-                                            onClick={handleCreateAccount}
-                                            style={{ backgroundColor: !isCreatingAccount && newAccountName && !isWrongNetwork ? '#2563eb' : '#374151' }}
+                                        onClick={() => setIsCreatingNewAccount(false)}
+                                        className="flex-1 p-2 text-[#F6F6F6] hover:bg-[#424242] rounded-lg transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleCreateSubAccount}
+                                        disabled={!newAccountName || isCreatingAccount}
+                                        className="flex-1 p-2 bg-[#A5E547] text-[#003300] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             {isCreatingAccount ? 'Creating...' : 'Create'}
-                                        </button>
+                                    </button>
                                 </div>
-                                    )}
                             </div>
-                        )}
-                    </div>
+                            </div>
+                    )}
 
-                    <div className="space-y-2">
-                        <div className="relative flex items-center">
-                            <div className="absolute left-3">
-                                <UsdcIcon />
+                    {/* Amount Input */}
+                    <div className="w-full">
+                        <div className="flex items-center p-3 bg-[#2A2A2A] border border-[#424242] rounded-2xl">
+                            <div className="flex items-center gap-3">
+                                <img src="/usdc-icon.svg" alt="USDC" className="w-6 h-6" />
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    pattern="^[0-9]*[.,]?[0-9]*$"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))}
+                                    className="w-full bg-transparent text-[18px] font-semibold text-[#F6F6F6] outline-none"
+                                    placeholder="Enter amount"
+                                    disabled={shouldDisableInteraction}
+                                />
                             </div>
-                            <input
-                                className="w-full p-3 pl-10 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-                                type="text"
-                                inputMode="decimal"
-                                pattern="^[0-9]*[.,]?[0-9]*$"
-                                placeholder="Enter amount to deposit"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))}
-                                style={{ backgroundColor: '#1f2937', color: 'white' }}
-                            />
+                        </div>
                         </div>
 
-                        <div className="grid grid-cols-4 gap-2">
-                            {[1, 5, 10, 20].map((percent) => (
-                                <button
-                                    key={percent}
-                                    className="p-2 bg-gray-800 hover:bg-gray-700 rounded-md text-white whitespace-nowrap"
-                                    onClick={() => setAmount(percent.toString())}
-                                    style={{ backgroundColor: '#1f2937' }}
-                                >
-                                    {percent} USDC
-                                </button>
-                            ))}
-                        </div>
+                    {/* Quick Amount Buttons */}
+                    <div className="flex gap-[14px] w-full">
+                        {['1', '5', '10', '20'].map((value) => (
+                            <button
+                                key={value}
+                                onClick={() => setAmount(value)}
+                                disabled={shouldDisableInteraction}
+                                className="flex items-center justify-center px-2 py-2 bg-[rgba(83,83,83,0.2)] border border-[#424242] rounded-lg h-[34px] flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <span className="text-[14px] font-semibold text-[#F6F6F6]">{value} USDC</span>
+                            </button>
+                        ))}
                     </div>
 
-                    <div className="flex items-start space-x-2 p-3 bg-gray-800 bg-opacity-50 rounded-md text-sm" style={{ backgroundColor: 'rgba(31, 41, 55, 0.5)' }}>
-                        <span>
-                            <strong>Important!</strong> To withdraw your deposited funds, please wait 720 minutes (12 hours) from the time of deposit.
-                        </span>
+                    {/* Warning Message */}
+                    <div className="flex gap-x-2 items-start p-4 bg-[rgba(255,183,77,0.05)] border border-[rgba(255,183,77,0.2)] rounded-2xl mt-2">
+                        <img src="/info-icon.svg" alt="Info" className="w-4 h-4 mt-[2px]" />
+                        <p className="text-xs font-bold text-[#F6F6F6] leading-5">
+                            Important! To withdraw your deposited funds, please wait 720 minutes (12 hours) from the time of deposit.
+                        </p>
                     </div>
-                </div>
 
-                {/* Modal Footer */}
-                <div className="p-4 border-t border-gray-800">
+                    {/* Continue Button */}
                     <button
-                        className={`w-full p-3 rounded-md font-medium ${
-                            !isProcessing && selectedAccount
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                : 'bg-gray-700 cursor-not-allowed text-gray-300'
-                        }`}
-                        disabled={isProcessing || !selectedAccount || !amount}
                         onClick={handleDeposit}
-                        style={{ backgroundColor: !isProcessing && selectedAccount && amount ? '#2563eb' : '#374151' }}
+                        disabled={isProcessing || !selectedAccount || shouldDisableInteraction}
+                        className="w-full h-11 mt-2 bg-[#A5E547] hover:opacity-90 text-[#003300] font-semibold rounded-2xl border border-[rgba(0,51,0,0.05)] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isProcessing ? 'Processing...' : 'Continue'}
                     </button>
+
+                    {/* Powered by Footer */}
+                    <div className="flex flex-col items-center gap-3 mt-2">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] font-semibold text-[#F6F6F6]">Powered by</span>
+                            <img src="/aarc-logo-small.svg" alt="Aarc" />
+                        </div>
+                        <p className="text-[10px] text-[#C3C3C3]">
+                            By using this service, you agree to Aarc <span className="underline cursor-pointer">terms</span>
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </main>
+        </div>
     );
 };
 
-export default DepositModal;
+export default IntentXDepositModal;
