@@ -4,7 +4,7 @@ const StyledConnectButton = () => {
     return (
         <div className="w-[158px] h-[40px]">
             <RainbowConnectButton.Custom>
-                {({ openConnectModal, account, chain, mounted }) => {
+                {({ openConnectModal }) => {
                     return (
                         <button
                             onClick={openConnectModal}
