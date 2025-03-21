@@ -26,7 +26,7 @@ export const Navbar = () => {
                 </div>
                 <div className="flex items-center space-x-4">
                     {!address && <StyledConnectButton />}
-                    <img src="/dark_mode.svg" alt="Theme toggle" className="w-10 h-10" />
+                    {/* <img src="/dark_mode.svg" alt="Theme toggle" className="w-10 h-10" /> */}
                 </div>
             </div>
         </header>
