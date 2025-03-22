@@ -1,7 +1,8 @@
 import { useAccount } from "wagmi";
 import StyledConnectButton from "./StyledConnectButton";
+import DisconnectButton from "./DisconnectButton";
 
-export const Navbar = () => {
+export const Navbar = ({ handleDisconnect }: { handleDisconnect: () => void }) => {
     const { address } = useAccount();
 
     return (
@@ -25,7 +26,7 @@ export const Navbar = () => {
                     />
                 </div>
                 <div className="flex items-center space-x-4">
-                    {!address && <StyledConnectButton />}
+                    {address ? <DisconnectButton handleDisconnect={handleDisconnect} /> : <StyledConnectButton />}
                     {/* <img src="/dark_mode.svg" alt="Theme toggle" className="w-10 h-10" /> */}
                 </div>
             </div>

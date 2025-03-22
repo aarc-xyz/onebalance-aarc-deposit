@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAccount, useWriteContract } from 'wagmi';
+import { useAccount, useDisconnect, useWriteContract } from 'wagmi';
 import { ethers } from 'ethers';
 import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
 import { BASE_RPC_URL, DIAMOND_ADDRESS, MULTIACCOUNT_ADDRESS, multiAccountAbi, SupportedChainId } from '../constants';
@@ -22,8 +22,28 @@ export const IntentXDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal
     const [isWrongNetwork, setIsWrongNetwork] = useState(false);
     const [newAccountName, setNewAccountName] = useState('');
     const [isCreatingNewAccount, setIsCreatingNewAccount] = useState(false);
+    const { disconnect } = useDisconnect();
 
     const { address, chain } = useAccount();
+
+    const handleDisconnect = () => {
+        // Reset all state values
+        setAmount('20');
+        setIsProcessing(false);
+        setSubAccounts([]);
+        setSelectedAccount(null);
+        setIsDropdownOpen(false);
+        setIsCreatingAccount(false);
+        setIsWrongNetwork(false);
+        setNewAccountName('');
+        setIsCreatingNewAccount(false);
+
+        // Disconnect wallet
+        disconnect();
+
+        // Clear any local storage
+        localStorage.removeItem('selectedAccount');
+    };
 
     // Create provider instance
     const provider = new ethers.JsonRpcProvider(BASE_RPC_URL);
@@ -148,7 +168,7 @@ export const IntentXDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitModal
 
     return (
         <div className="min-h-screen bg-aarc-bg grid-background">
-            <Navbar />
+            <Navbar handleDisconnect={handleDisconnect} />
             <main className="mt-24 gradient-border flex items-center justify-center mx-auto max-w-md shadow-[4px_8px_8px_4px_rgba(0,0,0,0.1)]">
                 <div className="flex flex-col items-center w-[440px] bg-[#2D2D2D] rounded-[24px]  p-8 pb-[22px] gap-3">
                     {isWrongNetwork && (
