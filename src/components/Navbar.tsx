@@ -20,9 +20,9 @@ export const Navbar = ({ handleDisconnect }: { handleDisconnect: () => void }) =
                         className="w-6 h-6"
                     />
                     <img
-                        className="h-12 w-auto"
-                        src="/intentx-name-logo.svg"
-                        alt="IntentX Logo"
+                        className="h-4 w-18"
+                        src="/jojo-name-logo.png"
+                        alt="Jojo Logo"
                     />
                 </div>
                 <div className="flex items-center space-x-4">
