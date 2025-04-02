@@ -12,10 +12,13 @@ export const OneBalanceDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitMo
     const disableLogin = !ready || (ready && authenticated);
 
     const predictOneBalanceAddress = async () => {
-        console.log(embeddedWallet);
         if (!embeddedWallet) return;
 
-        const oneBalanceAddress = await fetch('/api/onebalance/api/account/predict-address', {
+        const baseUrl = import.meta.env.DEV
+            ? '/api/onebalance'  // Development proxy
+            : 'https://be.onebalance.io';  // Production direct URL
+
+        const oneBalanceAddress = await fetch(`${baseUrl}/api/account/predict-address`, {
             method: "post",
             body: JSON.stringify({
                 sessionAddress: embeddedWallet.address,
@@ -27,8 +30,11 @@ export const OneBalanceDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitMo
             }
         })
 
+        if (!oneBalanceAddress.ok) {
+            throw new Error(`HTTP error! status: ${oneBalanceAddress.status}`);
+        }
+
         const data = await oneBalanceAddress.json();
-        console.log('OneBalance address', data);
 
         return data.predictedAddress;
     }
@@ -39,7 +45,6 @@ export const OneBalanceDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitMo
 
         try {
             const oneBalanceAddress = await predictOneBalanceAddress();
-            console.log('OneBalance address', oneBalanceAddress);
             if (!oneBalanceAddress) return;
             aarcModal.updateDestinationWalletAddress(oneBalanceAddress);
             aarcModal.openModal();

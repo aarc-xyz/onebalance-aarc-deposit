@@ -1,0 +1,8 @@
+[[redirects]]
+  from = "/api/onebalance/*"
+  to = "https://be.onebalance.io/:splat"
+  status = 200
+  force = true
+  headers = {
+    X-From = "Netlify"
+  } 
