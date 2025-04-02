@@ -11,5 +11,14 @@ export default defineConfig({
       'aarc-intentx-deposit.onrender.com',
       '.onrender.com' // This will allow all subdomains on render.com
     ]
+  },
+  server: {
+    proxy: {
+      '/api/onebalance': {
+        target: 'https://be.onebalance.io',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/onebalance/, '')
+      }
+    }
   }
 })

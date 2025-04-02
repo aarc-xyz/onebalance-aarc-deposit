@@ -55,6 +55,59 @@ html {
   box-shadow: 4px 8px 8px 4px rgba(0, 0, 0, 0.1);
 }
 
+.login-signup-button {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 4px;
+  width: 392px;
+  height: 44px;
+  background: #A5E547;
+  border: 1px solid rgba(0, 51, 0, 0.05);
+  border-radius: 16px;
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: #003300;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-signup-button:hover {
+  background: #B5F557;
+  border-color: rgba(0, 51, 0, 0.08);
+}
+
+.login-signup-button:active {
+  transform: scale(0.98);
+}
+
+.login-signup-button .placeholder-icon,
+.login-signup-button .chevron-right-icon,
+.login-signup-button .arrow-narrow-icon {
+  display: none;
+  width: 20px;
+  height: 20px;
+}
+
+.login-signup-button .arrow-narrow-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.login-signup-button .text-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 0px 2px;
+  height: 20px;
+}
 /* Make iframes transparent */
 iframe {
   background-color: transparent !important;
