@@ -4,4 +4,7 @@
   status = 200
   force = true
   [redirects.headers]
-    X-From = "Netlify" 
+    X-From = "Netlify"
+
+[build]
+  functions = "netlify/functions" 

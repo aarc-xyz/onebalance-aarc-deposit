@@ -12,20 +12,16 @@ export const OneBalanceDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitMo
     const disableLogin = !ready || (ready && authenticated);
 
     const predictOneBalanceAddress = async () => {
+        console.log(embeddedWallet);
         if (!embeddedWallet) return;
 
-        const baseUrl = import.meta.env.DEV
-            ? '/api/onebalance'  // Development proxy
-            : 'https://be.onebalance.io';  // Production direct URL
-
-        const oneBalanceAddress = await fetch(`${baseUrl}/api/account/predict-address`, {
+        const oneBalanceAddress = await fetch('/.netlify/functions/predict-address', {
             method: "post",
             body: JSON.stringify({
                 sessionAddress: embeddedWallet.address,
                 adminAddress: ADMIN_ADDRESS,
             }),
             headers: {
-                "x-api-key": import.meta.env.VITE_ONEBALANCE_API_KEY,
                 "Content-Type": "application/json"
             }
         })
@@ -35,6 +31,7 @@ export const OneBalanceDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitMo
         }
 
         const data = await oneBalanceAddress.json();
+        console.log('OneBalance address', data);
 
         return data.predictedAddress;
     }
