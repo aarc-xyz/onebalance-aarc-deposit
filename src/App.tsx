@@ -30,7 +30,6 @@ function App() {
       clientId={import.meta.env.VITE_PRIVY_CLIENT_ID}
       config={{
         // Display email and wallet as login methods
-        loginMethods: ['email', 'wallet'],
         appearance: {
           theme: 'dark',
           accentColor: '#A5E547',

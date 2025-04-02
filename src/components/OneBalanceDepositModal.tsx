@@ -66,14 +66,16 @@ export const OneBalanceDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitMo
 
                 <div className="mt-2 flex items-center justify-center space-x-0.5 text-aarc-text">
                     <span className="font-semibold text-[10.94px] leading-none">Powered by</span>
-                    <img
-                        src="/aarc-logo.svg"
-                        alt="Aarc Logo"
-                        className="w-[56.11px] h-[14.90px]"
-                    />
+                    <a href="https://aarc.xyz" target="_blank" rel="noopener noreferrer">
+                        <img
+                            src="/aarc-logo.svg"
+                            alt="Aarc Logo"
+                            className="w-[54px] h-[32px]"
+                        />
+                    </a>
                 </div>
                 <div className="text-center text-[10px] leading-none text-aarc-text">
-                    By using this service, you agree to Aarc <span className="underline">terms</span>
+                    By using this service, you agree to Aarc terms
                 </div>
             </main>
         </div>
