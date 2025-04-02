@@ -1,4 +1,4 @@
-import DisconnectButton from "./Logout";
+import Logout from "./Logout";
 
 export const Navbar = () => {
 
@@ -27,7 +27,7 @@ export const Navbar = () => {
                     </a>
                 </div>
                 <div className="flex items-center space-x-4">
-                    {<DisconnectButton />}
+                    {<Logout />}
                     {/* <img src="/dark_mode.svg" alt="Theme toggle" className="w-10 h-10" /> */}
                 </div>
             </div>
