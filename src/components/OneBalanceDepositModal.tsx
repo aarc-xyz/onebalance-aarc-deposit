@@ -12,7 +12,6 @@ export const OneBalanceDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitMo
     const disableLogin = !ready || (ready && authenticated);
 
     const predictOneBalanceAddress = async () => {
-        console.log(embeddedWallet);
         if (!embeddedWallet) return;
 
         const oneBalanceAddress = await fetch('/.netlify/functions/predict-address', {
@@ -31,13 +30,13 @@ export const OneBalanceDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitMo
         }
 
         const data = await oneBalanceAddress.json();
-        console.log('OneBalance address', data);
 
         return data.predictedAddress;
     }
 
 
     const handleFundWallet = async () => {
+        console.log('embeddedWallet', embeddedWallet);
         if (!embeddedWallet) return;
 
         try {
