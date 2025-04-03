@@ -9,12 +9,6 @@ import { aarcConfig } from './config/aarcConfig';
 import DepositModal from './components/OneBalanceDepositModal';
 import { PrivyProvider } from '@privy-io/react-auth';
 
-declare global {
-  interface Window {
-    __VUE__: boolean;
-  }
-}
-
 const queryClient = new QueryClient();
 
 function App() {
