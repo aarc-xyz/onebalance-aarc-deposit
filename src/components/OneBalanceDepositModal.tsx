@@ -72,9 +72,9 @@ export const OneBalanceDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitMo
             <main className="pt-8 gradient-border mt-24 pb-8 px-7 mx-auto max-w-md">
                 {!disableLogin ? (
                     <div className="flex items-center w-full justify-center gap-x-2">
-                        <div className="text-aarc-text font-bold">Deposit into your </div>
+                        <span className="text-aarc-text text-xs font-bold">Deposit into your </span>
                         <img src="/one-balance-name-logo.svg" alt="Aarc Logo" className="w-[54px] h-[32px]" />
-                        <div className="text-aarc-text font-semibold">account</div>
+                        <span className="text-aarc-text text-xs font-semibold">account</span>
                     </div>
                 ) : (
                         <div className="box-border flex w-full items-center  px-2 py-3 gap-2.5 border border-[#424242] rounded-2xl flex-grow-0 z-[5]">
