@@ -69,15 +69,15 @@ export const OneBalanceDepositModal = ({ aarcModal }: { aarcModal: AarcFundKitMo
     return (
         <div className="min-h-screen bg-aarc-bg grid-background">
             <Navbar />
-            <main className="pt-8 gradient-border mt-24 pb-8 px-4 mx-auto max-w-md">
+            <main className="pt-8 gradient-border mt-24 pb-8 px-7 mx-auto max-w-md">
                 {!disableLogin ? (
-                    <div className="flex items-center w-[392px] justify-center gap-x-2">
+                    <div className="flex items-center w-full justify-center gap-x-2">
                         <div className="text-aarc-text font-bold">Deposit into your </div>
                         <img src="/one-balance-name-logo.svg" alt="Aarc Logo" className="w-[54px] h-[32px]" />
                         <div className="text-aarc-text font-semibold">account</div>
                     </div>
                 ) : (
-                    <div className="box-border flex w-[392px] items-center  px-2 py-3 gap-2.5 border border-[#424242] rounded-2xl flex-grow-0 z-[5]">
+                        <div className="box-border flex w-full items-center  px-2 py-3 gap-2.5 border border-[#424242] rounded-2xl flex-grow-0 z-[5]">
                         <img src="/onebalance.png" alt="Ethereum" className="w-6 h-6" />
                         <div className="flex flex-col items-start center gap-2">
                             <div className="text-[#C3C3C3] text-xs font-medium">EVM Address</div>

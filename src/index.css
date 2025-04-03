@@ -62,9 +62,8 @@ html {
   justify-content: center;
   align-items: center;
   padding: 10px 16px;
+  width: 100%;
   gap: 4px;
-  width: 392px;
-  height: 44px;
   background: #A5E547;
   border: 1px solid rgba(0, 51, 0, 0.05);
   border-radius: 16px;
